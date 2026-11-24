@@ -5,6 +5,7 @@ Containerized cloud deployment and availability monitoring for the Task 03 appli
 ## Architecture
 
 - FastAPI application container from the Task 03 Docker Hub image.
+- PostgreSQL 16 and Redis 7 dependency services with persistent volumes and health checks.
 - Docker Compose orchestration and persistent Prometheus/Grafana volumes.
 - Prometheus blackbox exporter probes the application's `/health` endpoint.
 - Prometheus alert rules detect failed and slow health checks.
@@ -14,7 +15,7 @@ Containerized cloud deployment and availability monitoring for the Task 03 appli
 
 ## Repository contents
 
-- `docker-compose.yml` — application, Blackbox Exporter, Prometheus, Alertmanager and Grafana.
+- `docker-compose.yml` — application, PostgreSQL, Redis, Blackbox Exporter, Prometheus, Alertmanager and Grafana.
 - `prometheus.yml`, `blackbox.yml`, `prometheus/alerts.yml` — scraping, probe and alert rules.
 - `alertmanager.yml` — webhook notification route.
 - `grafana/provisioning/` — preconfigured datasource and dashboard.
@@ -27,7 +28,7 @@ Requires Docker Engine and Docker Compose:
 
 ```bash
 cp .env.example .env
-# Edit .env and set a strong Grafana password plus a real alert webhook.
+# Set strong local credentials and a real alert webhook in .env.
 docker compose config
 docker compose pull
 docker compose up -d
@@ -37,6 +38,16 @@ curl -i http://127.0.0.1:8000/health
 
 Grafana is available locally at `http://127.0.0.1:3000`. Prometheus,
 Alertmanager and Blackbox Exporter are not published to the host network.
+
+### Verified local runtime
+
+The seven-service Compose stack was started and checked in GitHub Codespaces.
+The application health endpoint returned `healthy`, with PostgreSQL and Redis
+both reporting `healthy`. Grafana's health API returned database `ok`.
+Prometheus reported `up = 1` for both the application health probe and its
+self-monitoring target.
+
+These are local runtime checks, not proof of a permanent public deployment.
 
 ## Cloud deployment status
 
