@@ -1,0 +1,48 @@
+name: Task 06 Cloud and monitoring validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-and-monitoring-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose model
+        env:
+          GRAFANA_ADMIN_PASSWORD: ci-validation-only-password
+        run: docker compose -f docker-compose.yml config --quiet
+
+      - name: Validate Prometheus configuration and alert rules
+        run: |
+          docker run --rm \
+            --volume "$PWD/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+            --volume "$PWD/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro" \
+            prom/prometheus:v2.55.1 \
+            promtool check config /etc/prometheus/prometheus.yml
+
+      - name: Validate Alertmanager configuration
+        run: |
+          docker run --rm \
+            --volume "$PWD/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro" \
+            prom/alertmanager:v0.27.0 \
+            amtool check-config /etc/alertmanager/alertmanager.yml
+
+      - name: Validate Grafana dashboard JSON
+        run: python -c "import json; json.load(open('grafana/provisioning/dashboards/cloud-capstone.json', encoding='utf-8')); print('Grafana dashboard JSON is valid')"
+
+      - name: Confirm required monitoring files exist
+        run: |
+          test -f blackbox.yml
+          test -f grafana/provisioning/datasources/prometheus.yml
+          test -f grafana/provisioning/dashboards/provider.yml
+          test -f prometheus/alerts.yml
