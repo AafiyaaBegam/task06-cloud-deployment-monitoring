@@ -13,5 +13,5 @@ receivers:
     webhook_configs:
       # Replace with a real HTTPS incident endpoint before expecting notifications.
       # Never commit a secret-bearing URL.
-      - url: "${ALERT_WEBHOOK_URL}"
+      - url: "https://example.invalid/alertmanager-webhook"
         send_resolved: true
