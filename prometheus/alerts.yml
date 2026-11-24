@@ -1,0 +1,20 @@
+groups:
+  - name: cloud-capstone-availability
+    rules:
+      - alert: ApplicationHealthCheckFailed
+        expr: probe_success{job="cloud-app-health"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Cloud application health check failed"
+          description: "The /health endpoint at {{ $labels.instance }} has failed for more than two minutes."
+
+      - alert: ApplicationHealthCheckSlow
+        expr: probe_duration_seconds{job="cloud-app-health"} > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cloud application health check is slow"
+          description: "The /health endpoint at {{ $labels.instance }} has exceeded two seconds for five minutes."
